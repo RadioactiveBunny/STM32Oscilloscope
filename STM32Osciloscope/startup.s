@@ -66,7 +66,7 @@ LoopFillZerobss:
 
 Default_Handler:
 Infinite_Loop:
-  b Infinite_Loop
+  b Reset_Handler
   .size Default_Handler, .-Default_Handler
 
   .section .isr_vector,"a",%progbits

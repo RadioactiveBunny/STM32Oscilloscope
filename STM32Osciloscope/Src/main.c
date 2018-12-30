@@ -9,15 +9,18 @@ int main()
 	PeripheralConfiguration();
 	ILI9341_Enable();
 	ILI9341_Init();
+	ILI9341_SPI_BeginDraw();
+	ILI9341_Draw_Main_Interface();
 	while(1)
 	{
-		// *((__IO uint8_t*)&SPI2->DR) = (uint8_t)0xFF;
-		// while(!(SPI_MODULE->SR & SPI_SR_TXE )){}
-		// *((__IO uint8_t*)&SPI2->DR) = (uint8_t)0x55;
-		// while(!(SPI_MODULE->SR & SPI_SR_TXE )){}
-		// *((__IO uint8_t*)&SPI2->DR) = (uint8_t)0x00;
-		// while(!(SPI_MODULE->SR & SPI_SR_TXE )){}
-		ILI9341_Draw_Main_Interface();
+		uint8_t char_buffer[6]="Bingo!";
+		static uint8_t old_char_buffer[6]={0x00,0x00,0x00,0x00,0x00,0x00};
+		for(int i=0;i<sizeof(char_buffer); i++)
+		{
+			ILI9341_Draw_Char(char_buffer[i],old_char_buffer[i], 5+13*i,210, COLOR_3, 2);
+		}
+		memcpy(old_char_buffer,char_buffer,sizeof(char_buffer));
+		
 #ifdef PORTC13_PROBING
 		GPIOC->BSRR = GPIO_BSRR_BR13;
 		GPIOC->BSRR = GPIO_BSRR_BS13;

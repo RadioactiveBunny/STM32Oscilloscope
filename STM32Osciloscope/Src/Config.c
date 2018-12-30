@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include "stm32f103xb.h"
 
+#define SYSTEM_CLOCK 8000000U
+
+extern void* g_pfnVectors;
+
 void PeripheralConfiguration()
 {
 	/*Enable SPI2 Clock*/
@@ -10,11 +14,14 @@ void PeripheralConfiguration()
 	/*Turn on alternate function IO clock*/
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 
+	/* Disable Debug Ports alternate function configuration to free PORTA15 */
+	AFIO->MAPR = (AFIO->MAPR & (~(AFIO_MAPR_SWJ_CFG_0 | AFIO_MAPR_SWJ_CFG_1)) | (AFIO_MAPR_SWJ_CFG_2));
+
 	/* Configure LCD Slave Select Pin(PORTA15) for SPI2 */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE15_0 | GPIO_CRH_CNF15))) | (GPIO_CRH_MODE15_1);
 	/* Configure LCD DC Pin (PORTA12) */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE12_0 | GPIO_CRH_CNF12))) | (GPIO_CRH_MODE12_1);
-	/* Configure LCD RST Pin (PORTA11) */
+	// /* Configure LCD RST Pin (PORTA11) */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE11_0 | GPIO_CRH_CNF11))) | (GPIO_CRH_MODE11_1);
 
 	/*Disable SPI2 first*/
@@ -51,7 +58,11 @@ void PeripheralConfiguration()
 	/* Enable SPI2 */
 	SPI2->CR1 |= SPI_CR1_SPE;
 
+	/* Set interrupt vector table address register */
+	SCB->VTOR = (uint32_t)&g_pfnVectors; /* This is defined in startup.s */
 	/*Systick Config*/
+	SysTick_Config(SYSTEM_CLOCK/1000); /* Configured an interrupt every 1 ms or 8000 cpu cycles */
+
 #ifdef PORTC13_PROBING
 	/*Enable PORTC clock for execution time probing probing*/
 	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
@@ -59,3 +70,24 @@ void PeripheralConfiguration()
 	GPIOC->CRH = (GPIOC->CRH & (~(GPIO_CRH_MODE13_0 | GPIO_CRH_CNF13))) | (GPIO_CRH_MODE13_1);
 #endif
 }
+
+/* Holds timebase counter in ms */
+volatile uint32_t TimeCounter = 0;
+
+/* SysTick Interrupt Handler */
+void SysTick_Handler()
+{
+	TimeCounter++;
+}
+
+/* Delay in ms */
+void Delay(uint32_t lDelay)
+{
+	uint32_t timeStart = TimeCounter;
+	uint32_t timeDiff = 0;
+	while(timeDiff < lDelay)
+	{
+		timeDiff = TimeCounter - timeStart;
+	}
+}
+

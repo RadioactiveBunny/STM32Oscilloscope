@@ -4,8 +4,9 @@
 #include "ili9341.h"
 #include "font.h"
 
-#define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(SPI_MODULE->SR & SPI_SR_TXE )){}
+#define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
 
+extern volatile uint32_t TimeCounter;
 
 void ILI9341_SPI_BeginDraw()
 {
@@ -16,27 +17,29 @@ void ILI9341_SPI_BeginDraw()
 
 void ILI9341_SPI_StopDraw()
 {
-	LCD_CS_PORT->BSRR=(uint32_t)LCD_CS_PIN << 16U;
+	LCD_CS_PORT->BSRR=LCD_CS_PIN;
 }
 
 
 /* Send command (char) to LCD */
-void ILI9341_Write_Command(uint8_t Command)
+int ILI9341_Write_Command(uint8_t Command)
 {
-	// const uint32_t tickstart_local = HAL_GetTick();
+	const uint32_t tickstart_local = TimeCounter;
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
 	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Command;
 	WAIT_TX_CHECK_TIMEOUT(2)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
+	return 0;
 }
 
 
 /* Send Data (char) to LCD */
-void ILI9341_Write_Data(uint8_t Data)
+int ILI9341_Write_Data(uint8_t Data)
 {
-	// const uint32_t tickstart_local = HAL_GetTick();
+	const uint32_t tickstart_local = TimeCounter;
 	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Data;
 	WAIT_TX_CHECK_TIMEOUT(2)
+	return 0;
 }
 
 
@@ -49,156 +52,160 @@ void ILI9341_Enable(void)
 void ILI9341_Reset(void)
 {
 	LCD_RST_PORT->BSRR =(uint32_t)LCD_RST_PIN<<16U;
-	// HAL_Delay(400);
+	Delay(400);
 	LCD_RST_PORT->BSRR = LCD_RST_PIN;
 }
 
 
 /*Initialize LCD display*/
-void ILI9341_Init()
+int ILI9341_Init()
 {
+	int lRetVal = 0;
+	
 	ILI9341_Enable();
-	// ILI9341_Reset();
+	ILI9341_Reset();
+
 	//SOFTWARE RESET
 	ILI9341_SPI_BeginDraw();
 
-	// ILI9341_Write_Command(0x01);
-	// HAL_Delay(1000);
+	lRetVal |= ILI9341_Write_Command(0x01);
+	Delay(1000);
 
 	//POWER CONTROL A
-	ILI9341_Write_Command(0xCB);
-	ILI9341_Write_Data(0x39);
-	ILI9341_Write_Data(0x2C);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0x34);
-	ILI9341_Write_Data(0x02);
+	lRetVal |= ILI9341_Write_Command(0xCB);
+	lRetVal |= ILI9341_Write_Data(0x39);
+	lRetVal |= ILI9341_Write_Data(0x2C);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0x34);
+	lRetVal |= ILI9341_Write_Data(0x02);
 
 	//POWER CONTROL B
-	ILI9341_Write_Command(0xCF);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0xC1);
-	ILI9341_Write_Data(0x30);
+	lRetVal |= ILI9341_Write_Command(0xCF);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0xC1);
+	lRetVal |= ILI9341_Write_Data(0x30);
 
 	//DRIVER TIMING CONTROL A
-	ILI9341_Write_Command(0xE8);
-	ILI9341_Write_Data(0x85);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0x78);
+	lRetVal |= ILI9341_Write_Command(0xE8);
+	lRetVal |= ILI9341_Write_Data(0x85);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0x78);
 
 	//DRIVER TIMING CONTROL B
-	ILI9341_Write_Command(0xEA);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Command(0xEA);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0x00);
 
 	//POWER ON SEQUENCE CONTROL
-	ILI9341_Write_Command(0xED);
-	ILI9341_Write_Data(0x64);
-	ILI9341_Write_Data(0x03);
-	ILI9341_Write_Data(0x12);
-	ILI9341_Write_Data(0x81);
+	lRetVal |= ILI9341_Write_Command(0xED);
+	lRetVal |= ILI9341_Write_Data(0x64);
+	lRetVal |= ILI9341_Write_Data(0x03);
+	lRetVal |= ILI9341_Write_Data(0x12);
+	lRetVal |= ILI9341_Write_Data(0x81);
 
 	//PUMP RATIO CONTROL
-	ILI9341_Write_Command(0xF7);
-	ILI9341_Write_Data(0x20);
+	lRetVal |= ILI9341_Write_Command(0xF7);
+	lRetVal |= ILI9341_Write_Data(0x20);
 
 	//POWER CONTROL,VRH[5:0]
-	ILI9341_Write_Command(0xC0);
-	ILI9341_Write_Data(0x23);
+	lRetVal |= ILI9341_Write_Command(0xC0);
+	lRetVal |= ILI9341_Write_Data(0x23);
 
 	//POWER CONTROL,SAP[2:0];BT[3:0]
-	ILI9341_Write_Command(0xC1);
-	ILI9341_Write_Data(0x10);
+	lRetVal |= ILI9341_Write_Command(0xC1);
+	lRetVal |= ILI9341_Write_Data(0x10);
 
 	//VCM CONTROL
-	ILI9341_Write_Command(0xC5);
-	ILI9341_Write_Data(0x3E);
-	ILI9341_Write_Data(0x28);
+	lRetVal |= ILI9341_Write_Command(0xC5);
+	lRetVal |= ILI9341_Write_Data(0x3E);
+	lRetVal |= ILI9341_Write_Data(0x28);
 
 	//VCM CONTROL 2
-	ILI9341_Write_Command(0xC7);
-	ILI9341_Write_Data(0x86);
+	lRetVal |= ILI9341_Write_Command(0xC7);
+	lRetVal |= ILI9341_Write_Data(0x86);
 
 	//MEMORY ACCESS CONTROL
-	ILI9341_Write_Command(0x36);
-	ILI9341_Write_Data(0x48);
+	lRetVal |= ILI9341_Write_Command(0x36);
+	lRetVal |= ILI9341_Write_Data(0x48);
 
 	//PIXEL FORMAT
-	ILI9341_Write_Command(0x3A);
-	ILI9341_Write_Data(0x55);
+	lRetVal |= ILI9341_Write_Command(0x3A);
+	lRetVal |= ILI9341_Write_Data(0x55);
 
 	//FRAME RATIO CONTROL, STANDARD RGB COLOR
-	ILI9341_Write_Command(0xB1);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0x18);
+	lRetVal |= ILI9341_Write_Command(0xB1);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0x18);
 
 	//DISPLAY FUNCTION CONTROL
-	ILI9341_Write_Command(0xB6);
-	ILI9341_Write_Data(0x08);
-	ILI9341_Write_Data(0x82);
-	ILI9341_Write_Data(0x27);
+	lRetVal |= ILI9341_Write_Command(0xB6);
+	lRetVal |= ILI9341_Write_Data(0x08);
+	lRetVal |= ILI9341_Write_Data(0x82);
+	lRetVal |= ILI9341_Write_Data(0x27);
 
 	//3GAMMA FUNCTION DISABLE
-	ILI9341_Write_Command(0xF2);
-	ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Command(0xF2);
+	lRetVal |= ILI9341_Write_Data(0x00);
 
 	//GAMMA CURVE SELECTED
-	ILI9341_Write_Command(0x26);
-	ILI9341_Write_Data(0x01);
+	lRetVal |= ILI9341_Write_Command(0x26);
+	lRetVal |= ILI9341_Write_Data(0x01);
 
 	//POSITIVE GAMMA CORRECTION
-	ILI9341_Write_Command(0xE0);
-	ILI9341_Write_Data(0x0F);
-	ILI9341_Write_Data(0x31);
-	ILI9341_Write_Data(0x2B);
-	ILI9341_Write_Data(0x0C);
-	ILI9341_Write_Data(0x0E);
-	ILI9341_Write_Data(0x08);
-	ILI9341_Write_Data(0x4E);
-	ILI9341_Write_Data(0xF1);
-	ILI9341_Write_Data(0x37);
-	ILI9341_Write_Data(0x07);
-	ILI9341_Write_Data(0x10);
-	ILI9341_Write_Data(0x03);
-	ILI9341_Write_Data(0x0E);
-	ILI9341_Write_Data(0x09);
-	ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Command(0xE0);
+	lRetVal |= ILI9341_Write_Data(0x0F);
+	lRetVal |= ILI9341_Write_Data(0x31);
+	lRetVal |= ILI9341_Write_Data(0x2B);
+	lRetVal |= ILI9341_Write_Data(0x0C);
+	lRetVal |= ILI9341_Write_Data(0x0E);
+	lRetVal |= ILI9341_Write_Data(0x08);
+	lRetVal |= ILI9341_Write_Data(0x4E);
+	lRetVal |= ILI9341_Write_Data(0xF1);
+	lRetVal |= ILI9341_Write_Data(0x37);
+	lRetVal |= ILI9341_Write_Data(0x07);
+	lRetVal |= ILI9341_Write_Data(0x10);
+	lRetVal |= ILI9341_Write_Data(0x03);
+	lRetVal |= ILI9341_Write_Data(0x0E);
+	lRetVal |= ILI9341_Write_Data(0x09);
+	lRetVal |= ILI9341_Write_Data(0x00);
 
 	//NEGATIVE GAMMA CORRECTION
-	ILI9341_Write_Command(0xE1);
-	ILI9341_Write_Data(0x00);
-	ILI9341_Write_Data(0x0E);
-	ILI9341_Write_Data(0x14);
-	ILI9341_Write_Data(0x03);
-	ILI9341_Write_Data(0x11);
-	ILI9341_Write_Data(0x07);
-	ILI9341_Write_Data(0x31);
-	ILI9341_Write_Data(0xC1);
-	ILI9341_Write_Data(0x48);
-	ILI9341_Write_Data(0x08);
-	ILI9341_Write_Data(0x0F);
-	ILI9341_Write_Data(0x0C);
-	ILI9341_Write_Data(0x31);
-	ILI9341_Write_Data(0x36);
-	ILI9341_Write_Data(0x0F);
+	lRetVal |= ILI9341_Write_Command(0xE1);
+	lRetVal |= ILI9341_Write_Data(0x00);
+	lRetVal |= ILI9341_Write_Data(0x0E);
+	lRetVal |= ILI9341_Write_Data(0x14);
+	lRetVal |= ILI9341_Write_Data(0x03);
+	lRetVal |= ILI9341_Write_Data(0x11);
+	lRetVal |= ILI9341_Write_Data(0x07);
+	lRetVal |= ILI9341_Write_Data(0x31);
+	lRetVal |= ILI9341_Write_Data(0xC1);
+	lRetVal |= ILI9341_Write_Data(0x48);
+	lRetVal |= ILI9341_Write_Data(0x08);
+	lRetVal |= ILI9341_Write_Data(0x0F);
+	lRetVal |= ILI9341_Write_Data(0x0C);
+	lRetVal |= ILI9341_Write_Data(0x31);
+	lRetVal |= ILI9341_Write_Data(0x36);
+	lRetVal |= ILI9341_Write_Data(0x0F);
 
 	//EXIT SLEEP
-	ILI9341_Write_Command(0x11);
-	// HAL_Delay(120);
+	lRetVal |= ILI9341_Write_Command(0x11);
+	// Delay(120);
 
 	//TURN ON DISPLAY
-	ILI9341_Write_Command(0x29);
+	lRetVal |= ILI9341_Write_Command(0x29);
 
 	//STARTING ROTATION
-	ILI9341_Write_Command(0x36);
-	ILI9341_Write_Data(SCREEN_HORIZONTAL_1);
+	lRetVal |= ILI9341_Write_Command(0x36);
+	lRetVal |= ILI9341_Write_Data(SCREEN_HORIZONTAL_1);
 
 	ILI9341_SPI_StopDraw();
+	return lRetVal;
 }
 
 
-void ILI9341_Draw_Pixel(uint16_t posX, uint16_t posY, uint16_t Color)
+int ILI9341_Draw_Pixel(uint16_t posX, uint16_t posY, uint16_t Color)
 {
-	// register const uint32_t tickstart_local = HAL_GetTick();
+	register const uint32_t tickstart_local = TimeCounter;
 	const uint32_t Timeout = 500;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*Send 1 byte column address set command*/
@@ -241,13 +248,14 @@ void ILI9341_Draw_Pixel(uint16_t posX, uint16_t posY, uint16_t Color)
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
+	return 0;
 }
 
 
-void ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
+int ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 {
 	const uint32_t Timeout = 100U;
-	// register const uint32_t tickstart_local = HAL_GetTick();
+	register const uint32_t tickstart_local = TimeCounter;
 	uint8_t lGraphPrev, lGraphCur, lGraphDiff; 
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*Send 1 byte column address set command*/
@@ -435,17 +443,19 @@ void ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 	}
-	ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_3);
-	ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_3);
-	ILI9341_Draw_Square( 25, 185, 255, 186, COLOR_3);
+	int lRetVal = 0;
+	lRetVal |= ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 25, 185, 255, 186, COLOR_3);
+	return 0;
 }
 
 
-void ILI9341_Draw_Square(	uint16_t posX, uint16_t posY, 
+int ILI9341_Draw_Square(	uint16_t posX, uint16_t posY, 
 							uint16_t endX, uint16_t endY, 
 							uint16_t Color)
 {
-	// register const uint32_t tickstart_local = HAL_GetTick();
+	register const uint32_t tickstart_local = TimeCounter;
 	const uint32_t Timeout = 500;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*send 1 byte column address set command*/
@@ -492,11 +502,14 @@ void ILI9341_Draw_Square(	uint16_t posX, uint16_t posY,
 			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Color;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
+	return 0;
 }
 
 
-void ILI9341_Draw_Char(char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size) 
+int ILI9341_Draw_Char(char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size) 
 {
+	int lRetVal = 0;
+	
 	uint8_t 	function_char, function_old_char;
 	uint8_t 	i,j;
 	
@@ -537,62 +550,66 @@ void ILI9341_Draw_Char(char Character, char oldCharacter, uint16_t posX, uint16_
 			{
 				if(Size == 1)
 				{
-					ILI9341_Draw_Pixel(posX+j, posY+i, COLOR_1);
+					lRetVal |= ILI9341_Draw_Pixel(posX+j, posY+i, COLOR_1);
 				}
 				else
 				{
-					ILI9341_Draw_Square(posX+(j*Size), posY+(i*Size), posX+(j*Size) + Size-1, posY+(i*Size) + Size-1, COLOR_1);
+					lRetVal |= ILI9341_Draw_Square(posX+(j*Size), posY+(i*Size), posX+(j*Size) + Size-1, posY+(i*Size) + Size-1, COLOR_1);
 				}
 			}
 			if (temp[j] & (1<<i)) 
 			{
 				if(Size == 1)
 				{
-					ILI9341_Draw_Pixel(posX+j, posY+i, Color);
+					lRetVal |= ILI9341_Draw_Pixel(posX+j, posY+i, Color);
 				}
 				else
 				{
-					ILI9341_Draw_Square(posX+(j*Size), posY+(i*Size), posX+(j*Size) + Size-1, posY+(i*Size) + Size-1, Color);
+					lRetVal |= ILI9341_Draw_Square(posX+(j*Size), posY+(i*Size), posX+(j*Size) + Size-1, posY+(i*Size) + Size-1, Color);
 				}
 			}
 		}
 	}
+	return lRetVal;
 }
 
 
-void ILI9341_Draw_Main_Interface()
+int ILI9341_Draw_Main_Interface()
 {
-	ILI9341_Draw_Square(  0,   0, 320, 120, COLOR_1);
-	ILI9341_Draw_Square(  0, 120, 320, 240, COLOR_1);
+	int lRetVal = 0;
 	
-	ILI9341_Draw_Square(256,   0, 259, 240, COLOR_2);
-	ILI9341_Draw_Square(  0, 200, 320, 204, COLOR_2);
-	ILI9341_Draw_Square(260,  96, 320, 101, COLOR_2);
-	ILI9341_Draw_Square( 86, 204,  89, 240, COLOR_2);
-	ILI9341_Draw_Square(171, 204, 174, 240, COLOR_2);
+	lRetVal |= ILI9341_Draw_Square(  0,   0, 320, 120, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(  0, 120, 320, 240, COLOR_1);
+	
+	lRetVal |= ILI9341_Draw_Square(256,   0, 259, 240, COLOR_2);
+	lRetVal |= ILI9341_Draw_Square(  0, 200, 320, 204, COLOR_2);
+	lRetVal |= ILI9341_Draw_Square(260,  96, 320, 101, COLOR_2);
+	lRetVal |= ILI9341_Draw_Square( 86, 204,  89, 240, COLOR_2);
+	lRetVal |= ILI9341_Draw_Square(171, 204, 174, 240, COLOR_2);
 	
 	/*Amplitude Indicators*/
-	ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_3);
-	ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_3);
-	ILI9341_Draw_Square( 25, 185, 255, 186, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 25, 185, 255, 186, COLOR_3);
 
-	ILI9341_Draw_Square( 15,  94,  24,  97, COLOR_3);
-	ILI9341_Draw_Square( 15,   4,  24,   7, COLOR_3);
-	ILI9341_Draw_Square( 15, 184,  24, 187, COLOR_3);
-	ILI9341_Draw_Square( 15,  49,  23,  51, COLOR_3);
-	ILI9341_Draw_Square( 15, 139,  23, 141, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 15,  94,  24,  97, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 15,   4,  24,   7, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 15, 184,  24, 187, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 15,  49,  23,  51, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 15, 139,  23, 141, COLOR_3);
 	
 	for(int i=5 ; i<186 ; i+=9)
 	{
-		ILI9341_Draw_Square( 15 ,i,  20,i+1, COLOR_3);
+		lRetVal |= ILI9341_Draw_Square( 15 ,i,  20,i+1, COLOR_3);
 	}
 	
 	/*Timebase indicators*/
-	ILI9341_Draw_Square( 24, 187,  25, 197, COLOR_3);
-	ILI9341_Draw_Square(140, 187, 141, 197, COLOR_3);
-	ILI9341_Draw_Square(254, 187, 255, 197, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square( 24, 187,  25, 197, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square(140, 187, 141, 197, COLOR_3);
+	lRetVal |= ILI9341_Draw_Square(254, 187, 255, 197, COLOR_3);
 	for(int i=24;i<255;i+=29)
 	{
-		ILI9341_Draw_Square(i, 187, i+1, 192,COLOR_3);
+		lRetVal |= ILI9341_Draw_Square(i, 187, i+1, 192,COLOR_3);
 	}
+	return lRetVal;
 }

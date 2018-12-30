@@ -42,6 +42,7 @@
 #define __CORE_CM3_H_GENERIC
 
 #include <stdint.h>
+#include "stm32f103xb.h"
 
 #ifdef __cplusplus
  extern "C" {

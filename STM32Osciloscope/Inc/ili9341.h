@@ -18,17 +18,17 @@
 #define 	SCREEN_VERTICAL_2		0x80|0x08
 #define 	SCREEN_HORIZONTAL_2		0x40|0x80|0x20|0x08
 
-void ILI9341_Enable(void);
-void ILI9341_Init();
 void ILI9341_SPI_BeginDraw();
 void ILI9341_SPI_StopDraw();
-void ILI9341_Draw_Char( char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size);
-void ILI9341_Draw_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
-void ILI9341_Draw_Vertical_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
-void ILI9341_Draw_Dotted_Vertical_Line( uint16_t posX, uint16_t posY , uint16_t length, uint16_t Color);
-void ILI9341_Draw_Dotted_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
-void ILI9341_Draw_Square( uint16_t posX, uint16_t posY, uint16_t sizeX, uint16_t sizeY, uint16_t Color);
-void ILI9341_Draw_Graph(uint8_t* OldGraph,uint8_t* NewGraph, uint16_t Color);
-void ILI9341_Draw_Main_Interface();
+void ILI9341_Enable(void);
+int ILI9341_Init();
+int ILI9341_Draw_Char( char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size);
+int ILI9341_Draw_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
+int ILI9341_Draw_Vertical_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
+int ILI9341_Draw_Dotted_Vertical_Line( uint16_t posX, uint16_t posY , uint16_t length, uint16_t Color);
+int ILI9341_Draw_Dotted_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
+int ILI9341_Draw_Square( uint16_t posX, uint16_t posY, uint16_t sizeX, uint16_t sizeY, uint16_t Color);
+int ILI9341_Draw_Graph(uint8_t* OldGraph,uint8_t* NewGraph, uint16_t Color);
+int ILI9341_Draw_Main_Interface();
 
 #endif

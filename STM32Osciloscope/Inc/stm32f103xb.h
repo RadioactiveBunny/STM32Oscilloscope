@@ -55,8 +55,6 @@
 #ifndef __STM32F103xB_H
 #define __STM32F103xB_H
 
-#include "core_cm3.h"
-
 #ifdef __cplusplus
  extern "C" {
 #endif 
@@ -67,9 +65,10 @@
 /**
   * @brief Configuration of the Cortex-M3 Processor and Core Peripherals 
  */
-#define __IO volatile
-#define __I volatile const
-#define __O volatile
+#define __CM3_REV                  0x0200U  /*!< Core Revision r2p0                           */
+ #define __MPU_PRESENT             0U       /*!< Other STM32 devices does not provide an MPU  */
+#define __NVIC_PRIO_BITS           4U       /*!< STM32 uses 4 Bits for the Priority Levels    */
+#define __Vendor_SysTickConfig     0U       /*!< Set to 1 if different SysTick Config is used */
 
 /**
   * @}
@@ -148,9 +147,8 @@ typedef enum
   * @}
   */
 
-// #include "core_cm3.h"
-// #include "system_stm32f1xx.h"
-// #include <stdint.h>
+#include "core_cm3.h"
+#include <stdint.h>
 
 /** @addtogroup Peripheral_registers_structures
   * @{
@@ -544,7 +542,7 @@ typedef struct
   __IO uint32_t DCR;             /*!< TIM DMA control register,                    Address offset: 0x48 */
   __IO uint32_t DMAR;            /*!< TIM DMA address for full transfer register,  Address offset: 0x4C */
   __IO uint32_t OR;              /*!< TIM option register,                         Address offset: 0x50 */
-} TIM_TypeDef;
+}TIM_TypeDef;
 
 
 /** 
