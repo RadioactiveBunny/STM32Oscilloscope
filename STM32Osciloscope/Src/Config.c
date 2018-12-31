@@ -1,12 +1,17 @@
 #include <stdint.h>
 #include "stm32f103xb.h"
 
-#define SYSTEM_CLOCK 8000000U
+#define SYSTEM_CLOCK 32000000U
 
 extern void* g_pfnVectors;
 
 void PeripheralConfiguration()
 {
+	/*Configure PLL as 8xHSI/2 which is 32MHz ,set system clock source as PLL*/
+	RCC->CFGR = (RCC->CFGR & (~(RCC_CFGR_SW_0 | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL_0 | RCC_CFGR_PLLMULL_3))) | (RCC_CFGR_SW_1 | RCC_CFGR_PLLMULL_2 | RCC_CFGR_PLLMULL_1);
+	/*Turn on PLL*/
+	RCC->CR |= RCC_CR_PLLON;
+
 	/*Enable SPI2 Clock*/
 	RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;
 	/* Enable PORTA and PORTB Clock */
@@ -21,9 +26,24 @@ void PeripheralConfiguration()
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE15_0 | GPIO_CRH_CNF15))) | (GPIO_CRH_MODE15_1);
 	/* Configure LCD DC Pin (PORTA12) */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE12_0 | GPIO_CRH_CNF12))) | (GPIO_CRH_MODE12_1);
-	// /* Configure LCD RST Pin (PORTA11) */
+	/* Configure LCD RST Pin (PORTA11) */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE11_0 | GPIO_CRH_CNF11))) | (GPIO_CRH_MODE11_1);
 
+	/*Configure Touchscreen slave select pin(PORTB3) for SPI2 as output push-pull*/
+	GPIOB->CRL = (GPIOB->CRL & (~(GPIO_CRL_MODE3_0 | GPIO_CRL_CNF3))) | (GPIO_CRL_MODE3_1);
+
+
+	/*Configure Touchscreen PEN pin(PORTB4) as input pull-up/pull-down */
+	GPIOB->CRL = (GPIOB->CRL & (~(GPIO_CRL_MODE4 | GPIO_CRL_CNF4_0))) | (GPIO_CRL_CNF4_1);
+	/*Configure PORTB4 to use pull-up resistor*/
+	GPIOB->BSRR = GPIO_BSRR_BS4;
+
+	/*Configure Alternate function for PORTB4 interrupt on EXTI4 interrupt line*/
+	AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI4_PB;
+	/*Set interrupt trigger on rising Rising Edge for EXTI4 -> PORTB4 */
+	EXTI->RTSR |= EXTI_RTSR_TR4;
+	/*Unmask EXTI4 interrupt line*/
+	EXTI->IMR |= EXTI_IMR_MR4;
 	/*Disable SPI2 first*/
 	SPI2->CR1 &= ~(SPI_CR1_SPE);
 
@@ -60,8 +80,10 @@ void PeripheralConfiguration()
 
 	/* Set interrupt vector table address register */
 	SCB->VTOR = (uint32_t)&g_pfnVectors; /* This is defined in startup.s */
+
 	/*Systick Config*/
 	SysTick_Config(SYSTEM_CLOCK/1000); /* Configured an interrupt every 1 ms or 8000 cpu cycles */
+	NVIC_SetPriority (SysTick_IRQn, 0);
 
 #ifdef PORTC13_PROBING
 	/*Enable PORTC clock for execution time probing probing*/

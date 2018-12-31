@@ -4,7 +4,7 @@
 #include "ili9341.h"
 #include "font.h"
 
-#define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
+#define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(LCD_SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
 
 extern volatile uint32_t TimeCounter;
 
@@ -26,7 +26,7 @@ int ILI9341_Write_Command(uint8_t Command)
 {
 	const uint32_t tickstart_local = TimeCounter;
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Command;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)Command;
 	WAIT_TX_CHECK_TIMEOUT(2)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	return 0;
@@ -37,7 +37,7 @@ int ILI9341_Write_Command(uint8_t Command)
 int ILI9341_Write_Data(uint8_t Data)
 {
 	const uint32_t tickstart_local = TimeCounter;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Data;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)Data;
 	WAIT_TX_CHECK_TIMEOUT(2)
 	return 0;
 }
@@ -210,43 +210,43 @@ int ILI9341_Draw_Pixel(uint16_t posX, uint16_t posY, uint16_t Color)
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*Send 1 byte column address set command*/
 	LCD_DC_PORT->BSRR = (uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2A;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2A;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR = LCD_DC_PIN;
 	/*send 4 bytes column address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posX>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posX>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posX);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posX);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)((posX)>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)((posX)>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posX);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posX);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	
 	/*send 1 byte page address set command*/
 	LCD_DC_PORT->BSRR = (uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR = LCD_DC_PIN;
 	/*send 4 bytes page address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)((posY)>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)((posY)>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posY);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posY);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)((posY)>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)((posY)>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posY);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posY);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 	/*send 1 byte memory write command*/
 	LCD_DC_PORT->BSRR = (uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR = LCD_DC_PIN;
 	/*send 2 bytes color information*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(Color>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(Color);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	return 0;
 }
@@ -260,72 +260,72 @@ int ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*Send 1 byte column address set command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2A;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2A;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 4 bytes column address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)25;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)25;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)25;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)25;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	
 	/*First clear the old graph pixel*/
 	/*send 1 byte page address set command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 4 bytes page address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(OldGraph[0]);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(OldGraph[0]);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(OldGraph[0]);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(OldGraph[0]);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 	/*send 1 byte memory write command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 2 bytes color information*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(COLOR_1>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(COLOR_1>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)COLOR_1;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)COLOR_1;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 	
 	/*Write the new graph pixel*/
 	/*Send 1 byte page address set command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 4 bytes page address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(NewGraph[0]);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(NewGraph[0]);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(NewGraph[0]);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(NewGraph[0]);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	
 	/*send 1 byte memory write command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 2 bytes color information*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(Color>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Color;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)Color;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 
@@ -333,23 +333,23 @@ int ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 	{
 		/*Send 1 byte column address set command*/
 		LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2A;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2A;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
 		LCD_DC_PORT->BSRR=LCD_DC_PIN;
 		/*send 4 bytes column address data*/
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)i+25;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)i+25;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)i+25;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)i+25;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
 		
 		/*First clear the old graph pixel*/
 		/*send 1 byte page address set command*/
 		LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 		/*Fetch old graph data from memory while we wait for the byte to send*/
 		lGraphPrev = OldGraph[i-1];
 		lGraphCur = OldGraph[i];
@@ -358,47 +358,47 @@ int ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 		/*send 4 bytes page address data*/
 		if(lGraphCur>=lGraphPrev)
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			lGraphDiff = lGraphCur-lGraphPrev;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphCur);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphCur);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 		else
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			lGraphDiff = lGraphPrev-lGraphCur;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphCur);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphCur);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}	
 
 		/*send 1 byte memory write command*/
 		LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
 		LCD_DC_PORT->BSRR=LCD_DC_PIN;
 		/*send 2*diff bytes color information*/
 		for(uint8_t j=0; j<=lGraphDiff; j++)
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(COLOR_1>>8);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(COLOR_1>>8);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)COLOR_1;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)COLOR_1;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 		
 		/*Write the new graph pixel*/
 		/*Send 1 byte page address set command*/
 		LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 		/*Fetch old graph data from memory while we wait for the byte to send*/
 		lGraphPrev = NewGraph[i-1];
 		lGraphCur = NewGraph[i];
@@ -407,39 +407,39 @@ int ILI9341_Draw_Graph(uint8_t* OldGraph, uint8_t* NewGraph, uint16_t Color)
 		/*send 4 bytes page address data*/
 		if(lGraphCur>=lGraphPrev)
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			lGraphDiff = lGraphCur-lGraphPrev;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphCur);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphCur);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 		else
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			lGraphDiff = lGraphPrev-lGraphCur;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphCur);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphCur);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x00;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x00;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(lGraphPrev);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 		/*send 1 byte memory write command*/
 		LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-		*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+		*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 		WAIT_TX_CHECK_TIMEOUT(Timeout)
 		LCD_DC_PORT->BSRR=LCD_DC_PIN;
 		/*send 2 bytes color information*/
 		for(uint8_t j=0; j<=lGraphDiff; j++)
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color>>8);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(Color>>8);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Color;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)Color;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 	}
@@ -460,46 +460,46 @@ int ILI9341_Draw_Square(	uint16_t posX, uint16_t posY,
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	/*send 1 byte column address set command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2A;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2A;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 4 bytes column address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posX>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posX>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)posX;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)posX;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(endX>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(endX>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)endX;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)endX;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 	/*send 1 byte page address set command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2B;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2B;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 4 bytes page address data*/
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(posY>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(posY>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)posY;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)posY;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(endY>>8);
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(endY>>8);
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)endY;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)endY;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 
 	/*send 1 byte memory write command*/
 	LCD_DC_PORT->BSRR=(uint32_t)LCD_DC_PIN << 16U;
-	*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)0x2C;
+	*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)0x2C;
 	WAIT_TX_CHECK_TIMEOUT(Timeout)
 	LCD_DC_PORT->BSRR=LCD_DC_PIN;
 	/*send 2*(endY-posY)*(endX-posX) bytes color information*/
 	for(uint16_t i=0; i <= endX - posX; i++)
 		for(uint16_t j=0; j <= endY - posY; j++)
 		{
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)(Color>>8);
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)(Color>>8);
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
-			*((__IO uint8_t*)&SPI_MODULE->DR) = (uint8_t)Color;
+			*((__IO uint8_t*)&LCD_SPI_MODULE->DR) = (uint8_t)Color;
 			WAIT_TX_CHECK_TIMEOUT(Timeout)
 		}
 	return 0;
@@ -573,20 +573,26 @@ int ILI9341_Draw_Char(char Character, char oldCharacter, uint16_t posX, uint16_t
 	return lRetVal;
 }
 
+int ILI9341_Draw_Background()
+{
+	int lRetVal = 0;
+
+	lRetVal |= ILI9341_Draw_Square(  0,   0, 320, 120, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(  0, 120, 320, 240, COLOR_1);
+
+	return lRetVal;
+}
 
 int ILI9341_Draw_Main_Interface()
 {
 	int lRetVal = 0;
-	
-	lRetVal |= ILI9341_Draw_Square(  0,   0, 320, 120, COLOR_1);
-	lRetVal |= ILI9341_Draw_Square(  0, 120, 320, 240, COLOR_1);
-	
+
 	lRetVal |= ILI9341_Draw_Square(256,   0, 259, 240, COLOR_2);
 	lRetVal |= ILI9341_Draw_Square(  0, 200, 320, 204, COLOR_2);
 	lRetVal |= ILI9341_Draw_Square(260,  96, 320, 101, COLOR_2);
 	lRetVal |= ILI9341_Draw_Square( 86, 204,  89, 240, COLOR_2);
 	lRetVal |= ILI9341_Draw_Square(171, 204, 174, 240, COLOR_2);
-	
+
 	/*Amplitude Indicators*/
 	lRetVal |= ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_3);
 	lRetVal |= ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_3);
@@ -597,12 +603,12 @@ int ILI9341_Draw_Main_Interface()
 	lRetVal |= ILI9341_Draw_Square( 15, 184,  24, 187, COLOR_3);
 	lRetVal |= ILI9341_Draw_Square( 15,  49,  23,  51, COLOR_3);
 	lRetVal |= ILI9341_Draw_Square( 15, 139,  23, 141, COLOR_3);
-	
+
 	for(int i=5 ; i<186 ; i+=9)
 	{
 		lRetVal |= ILI9341_Draw_Square( 15 ,i,  20,i+1, COLOR_3);
 	}
-	
+
 	/*Timebase indicators*/
 	lRetVal |= ILI9341_Draw_Square( 24, 187,  25, 197, COLOR_3);
 	lRetVal |= ILI9341_Draw_Square(140, 187, 141, 197, COLOR_3);
@@ -610,6 +616,43 @@ int ILI9341_Draw_Main_Interface()
 	for(int i=24;i<255;i+=29)
 	{
 		lRetVal |= ILI9341_Draw_Square(i, 187, i+1, 192,COLOR_3);
+	}
+	return lRetVal;
+}
+
+int ILI9341_Delete_Main_Interface()
+{
+	int lRetVal = 0;
+
+	lRetVal |= ILI9341_Draw_Square(256,   0, 259, 240, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(  0, 200, 320, 204, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(260,  96, 320, 101, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 86, 204,  89, 240, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(171, 204, 174, 240, COLOR_1);
+
+	/*Amplitude Indicators*/
+	lRetVal |= ILI9341_Draw_Square( 25,  95, 255,  96, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 25,   5, 255,   6, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 25, 185, 255, 186, COLOR_1);
+
+	lRetVal |= ILI9341_Draw_Square( 15,  94,  24,  97, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 15,   4,  24,   7, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 15, 184,  24, 187, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 15,  49,  23,  51, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square( 15, 139,  23, 141, COLOR_1);
+
+	for(int i=5 ; i<186 ; i+=9)
+	{
+		lRetVal |= ILI9341_Draw_Square( 15 ,i,  20,i+1, COLOR_1);
+	}
+
+	/*Timebase indicators*/
+	lRetVal |= ILI9341_Draw_Square( 24, 187,  25, 197, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(140, 187, 141, 197, COLOR_1);
+	lRetVal |= ILI9341_Draw_Square(254, 187, 255, 197, COLOR_1);
+	for(int i=24;i<255;i+=29)
+	{
+		lRetVal |= ILI9341_Draw_Square(i, 187, i+1, 192,COLOR_1);
 	}
 	return lRetVal;
 }

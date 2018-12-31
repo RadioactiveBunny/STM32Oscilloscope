@@ -1,7 +1,7 @@
 #ifndef ILI9341_H
 #define ILI9341_H
 
-#define 	SPI_MODULE 		SPI2
+#define 	LCD_SPI_MODULE 	SPI2
 #define 	LCD_CS_PORT 	GPIOA
 #define 	LCD_CS_PIN  	GPIO_BSRR_BS15
 #define 	LCD_DC_PORT 	GPIOA
@@ -30,5 +30,7 @@ int ILI9341_Draw_Dotted_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t 
 int ILI9341_Draw_Square( uint16_t posX, uint16_t posY, uint16_t sizeX, uint16_t sizeY, uint16_t Color);
 int ILI9341_Draw_Graph(uint8_t* OldGraph,uint8_t* NewGraph, uint16_t Color);
 int ILI9341_Draw_Main_Interface();
+int ILI9341_Draw_Background();
+int ILI9341_Delete_Main_Interface();
 
 #endif

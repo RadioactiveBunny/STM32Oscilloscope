@@ -55,7 +55,8 @@ C_SOURCES = \
 Src/SystemInit.c \
 Src/Config.c \
 Src/main.c \
-Src/ili9341.c
+Src/ili9341.c \
+Src/xpt2046.c
 
 ASM_SOURCES = \
 startup.s
