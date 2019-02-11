@@ -82,7 +82,7 @@ void PeripheralConfiguration()
 	SCB->VTOR = (uint32_t)&g_pfnVectors; /* This is defined in startup.s */
 
 	/*Systick Config*/
-	SysTick_Config(SYSTEM_CLOCK/1000); /* Configured an interrupt every 1 ms or 8000 cpu cycles */
+	SysTick_Config(SYSTEM_CLOCK/1000); /* Configured an interrupt every 1 ms or 32000 cpu cycles */
 	NVIC_SetPriority (SysTick_IRQn, 0);
 
 #ifdef PORTC13_PROBING

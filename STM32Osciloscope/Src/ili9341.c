@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "stm32f103xb.h"
 #include "ili9341.h"
+#include "ili9341commands.h"
+#include "xpt2046.h"
 #include "font.h"
 
 #define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(LCD_SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
@@ -10,14 +12,19 @@ extern volatile uint32_t TimeCounter;
 
 void ILI9341_SPI_BeginDraw()
 {
-	/*chip select ili9341*/
-	LCD_CS_PORT->BSRR=(uint32_t)LCD_CS_PIN << 16U;
+	/*chip select xpt2046 deactivated(put on HIGH)*/
+	TOUCH_CS_PORT->BSRR = (uint32_t)TOUCH_CS_PIN;
+	/*chip select ili9341 activated(put on LOW)*/
+	LCD_CS_PORT->BSRR = (uint32_t)LCD_CS_PIN << 16U;
 }
 
 
 void ILI9341_SPI_StopDraw()
 {
-	LCD_CS_PORT->BSRR=LCD_CS_PIN;
+	/*chip select ili9341 deactivated(put on HIGH)*/
+	LCD_CS_PORT->BSRR = (uint32_t)LCD_CS_PIN;
+	/*chip select xpt2046 activated(put on LOW)*/
+	TOUCH_CS_PORT->BSRR = (uint32_t)TOUCH_CS_PIN<<16U;
 }
 
 
