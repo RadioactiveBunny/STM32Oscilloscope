@@ -18,8 +18,8 @@
 #define 	SCREEN_VERTICAL_2		0x80|0x08
 #define 	SCREEN_HORIZONTAL_2		0x40|0x80|0x20|0x08
 
-void ILI9341_SPI_BeginDraw();
-void ILI9341_SPI_StopDraw();
+void ILI9341_SPI_SS_Enable();
+void ILI9341_SPI_SS_Disable();
 void ILI9341_Enable(void);
 int ILI9341_Init();
 int ILI9341_Draw_Char( char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size);

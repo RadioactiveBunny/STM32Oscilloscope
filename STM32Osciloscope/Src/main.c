@@ -8,13 +8,12 @@ void PeripheralConfiguration();
 int main()
 {
 	PeripheralConfiguration();
-	xpt2046_ss_disable();
 	GPIOC->BSRR = GPIO_BSRR_BS13;
 	ILI9341_Enable();
 	ILI9341_Init();
-	ILI9341_SPI_BeginDraw();
+	ILI9341_SPI_SS_Enable();
 	ILI9341_Draw_Background();
-	xpt2046_enable_irq();
+	XPT2046_enable_irq();
 	Delay(1000);
 	NVIC_SetPriority(EXTI4_IRQn, 1);
 	EXTI->PR |= EXTI_PR_PR4;

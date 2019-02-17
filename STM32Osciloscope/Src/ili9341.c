@@ -10,7 +10,7 @@
 
 extern volatile uint32_t TimeCounter;
 
-void ILI9341_SPI_BeginDraw()
+void ILI9341_SPI_SS_Enable()
 {
 	/*chip select xpt2046 deactivated(put on HIGH)*/
 	TOUCH_CS_PORT->BSRR = (uint32_t)TOUCH_CS_PIN;
@@ -19,7 +19,7 @@ void ILI9341_SPI_BeginDraw()
 }
 
 
-void ILI9341_SPI_StopDraw()
+void ILI9341_SPI_SS_Disable()
 {
 	/*chip select ili9341 deactivated(put on HIGH)*/
 	LCD_CS_PORT->BSRR = (uint32_t)LCD_CS_PIN;
@@ -73,7 +73,7 @@ int ILI9341_Init()
 	ILI9341_Reset();
 
 	//SOFTWARE RESET
-	ILI9341_SPI_BeginDraw();
+	ILI9341_SPI_SS_Enable();
 
 	lRetVal |= ILI9341_Write_Command(0x01);
 	Delay(1000);
@@ -205,7 +205,7 @@ int ILI9341_Init()
 	lRetVal |= ILI9341_Write_Command(0x36);
 	lRetVal |= ILI9341_Write_Data(SCREEN_HORIZONTAL_1);
 
-	ILI9341_SPI_StopDraw();
+	ILI9341_SPI_SS_Disable();
 	return lRetVal;
 }
 

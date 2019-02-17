@@ -23,19 +23,26 @@
 #define XPT2046_MUX_Z2      0b100
 
 #define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
+
 extern volatile uint32_t TimeCounter;
 
-void xpt2046_ss_disable()
+void XPT2046_SPI_SS_disable()
 {
+	/*Disable TOUCH SS*/
 	TOUCH_CS_PORT->BSRR=TOUCH_CS_PIN;
+	/*Enable LCD SS*/
+	LCD_CS_PORT->BSRR = (uint32_t)LCD_CS_PIN << 16U;
 }
 
-void xpt_ss_enable()
+void XPT2046_SPI_SS_enable()
 {
+	/*First disable LCD SS*/
+	LCD_CS_PORT->BSRR = (uint32_t)LCD_CS_PIN;
+	/*Enable TOUCH SS*/
 	TOUCH_CS_PORT->BSRR=(uint32_t)TOUCH_CS_PIN << 16U;
 }
 
-int xpt2046_enable_irq()
+int XPT2046_enable_irq()
 {
 	const uint32_t tickstart_local = TimeCounter;
 	const uint8_t buf[4] = { (XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Y)), 0x00, 0x00, 0x00 };

@@ -9,11 +9,11 @@
 #define 	TOUCH_PEN_PORT		GPIOB
 #define 	TOUCH_PEN_PIN		GPIO_IDR_IDR4
 
-int xpt2046_enable_irq();
-void xpt2046_read_coord();
-void xpt2046_calibrate();
+int XPT2046_enable_irq();
+void XPT2046_read_coord();
+void XPT2046_calibrate();
 
-void xpt_ss_enable();
-void xpt2046_ss_disable();
+void XPT2046_SPI_SS_enable();
+void XPT2046_SPI_SS_disable();
 
 #endif

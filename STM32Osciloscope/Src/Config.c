@@ -8,7 +8,8 @@ extern void* g_pfnVectors;
 void PeripheralConfiguration()
 {
 	/*Configure PLL as 8xHSI/2 which is 32MHz ,set system clock source as PLL*/
-	RCC->CFGR = (RCC->CFGR & (~(RCC_CFGR_SW_0 | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL_0 | RCC_CFGR_PLLMULL_3))) | (RCC_CFGR_SW_1 | RCC_CFGR_PLLMULL_2 | RCC_CFGR_PLLMULL_1);
+	RCC->CFGR = (RCC->CFGR &  	(~(RCC_CFGR_SW_0 | RCC_CFGR_PLLSRC | RCC_CFGR_PLLMULL_0 | RCC_CFGR_PLLMULL_3))) | /*Switch these bits to 0*/
+								(RCC_CFGR_SW_1 | RCC_CFGR_PLLMULL_2 | RCC_CFGR_PLLMULL_1);/*Switch these bits to 1*/
 	/*Turn on PLL*/
 	RCC->CR |= RCC_CR_PLLON;
 
@@ -20,7 +21,8 @@ void PeripheralConfiguration()
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
 
 	/* Disable Debug Ports alternate function configuration to free PORTA15 */
-	AFIO->MAPR = (AFIO->MAPR & (~(AFIO_MAPR_SWJ_CFG_0 | AFIO_MAPR_SWJ_CFG_1)) | (AFIO_MAPR_SWJ_CFG_2));
+	AFIO->MAPR = (AFIO->MAPR & (~(AFIO_MAPR_SWJ_CFG_0 | AFIO_MAPR_SWJ_CFG_1))) |
+			(AFIO_MAPR_SWJ_CFG_2);
 
 	/* Configure LCD Slave Select Pin(PORTA15) for SPI2 */
 	GPIOA->CRH = (GPIOA->CRH & (~(GPIO_CRH_MODE15_0 | GPIO_CRH_CNF15))) | (GPIO_CRH_MODE15_1);
