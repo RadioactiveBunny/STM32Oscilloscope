@@ -14,6 +14,7 @@ int main()
 	ILI9341_SPI_SS_Enable();
 	ILI9341_Draw_Background();
 	XPT2046_enable_irq();
+	internalInterruptConfig();
 	Delay(1000);
 	while(1)
 	{
@@ -46,12 +47,4 @@ int main()
 #endif
 	}
 	return 0;
-}
-
-void EXTI4_IRQHandler()
-{
-	GPIOC->BSRR = GPIO_BSRR_BR13;
-	ILI9341_Draw_Main_Interface();
-	GPIOC->BSRR = GPIO_BSRR_BS13;
-	EXTI->PR |= EXTI_PR_PR4;
 }

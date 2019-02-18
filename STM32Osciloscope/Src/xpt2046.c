@@ -64,12 +64,15 @@ void internalInterruptConfig()
 	/*Enable Timer 2 clock*/
 	RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
 	/*Timer 2 config used to disable the touch interrupt for a period after it is activated*/
-	TIM2->DIER |= TIM_DIER_TIE;
+	TIM2->DIER |= TIM_DIER_UIE;
 	/*Prescaler*/
 	TIM2->PSC = 32000; /*32MHz/32000 = 1000 Hz*/
 	/*Auto-reload value*/
 	TIM2->ARR = 500; /* 500 ms */
+	TIM2->CR1 |= TIM_CR1_OPM;
 	/*Enable interrupt in the NVIC*/
+	NVIC_SetPriority(TIM2_IRQn, 2);
+	NVIC_ClearPendingIRQ(TIM2_IRQn);
 	NVIC_EnableIRQ(TIM2_IRQn);
 
 	/*Configure Alternate function for PORTB4 interrupt on EXTI4 interrupt line*/
@@ -106,23 +109,30 @@ static inline void unmaskInterrupt()
 
 void TIM2_IRQHandler()
 {
+#ifdef PORTC13_PROBING
+	GPIOC->BSRR = GPIO_BSRR_BR13;
+#endif
+	TIM2->SR &= ~TIM_SR_UIF;
 	/*Disable Timer*/
 	TIM2->CR1 &= ~TIM_CR1_CEN;
 	/*Unmask IRQ pin interrupt*/
 	unmaskInterrupt();
+#ifdef PORTC13_PROBING
+	GPIOC->BSRR = GPIO_BSRR_BS13;
+#endif
 }
 
 void EXTI4_IRQHandler()
 {
 	maskInterrupt();
 #ifdef PORTC13_PROBING
-	GPIOC->BSRR = GPIO_BSRR_BR13;
+	//GPIOC->BSRR = GPIO_BSRR_BR13;
 #endif
 
 	/*TODO: DFA GOES HERE*/
-
+	ILI9341_Draw_Main_Interface();
 #ifdef PORTC13_PROBING
-	GPIOC->BSRR = GPIO_BSRR_BS13;
+	//GPIOC->BSRR = GPIO_BSRR_BS13;
 #endif
 	/*Keep interrupt masked for 500ms after which timer overflows and activates timer interrupt that unmasks IRQ pin interrupt*/
 	TIM2->CR1 |= TIM_CR1_CEN;

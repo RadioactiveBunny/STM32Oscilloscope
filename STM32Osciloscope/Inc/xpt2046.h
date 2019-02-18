@@ -13,7 +13,5 @@ int XPT2046_enable_irq();
 void XPT2046_read_coord();
 void XPT2046_calibrate();
 
-void XPT2046_SPI_SS_enable();
-void XPT2046_SPI_SS_disable();
 
 #endif
