@@ -15,10 +15,6 @@ int main()
 	ILI9341_Draw_Background();
 	XPT2046_enable_irq();
 	Delay(1000);
-	NVIC_SetPriority(EXTI4_IRQn, 1);
-	EXTI->PR |= EXTI_PR_PR4;
-	NVIC_ClearPendingIRQ(EXTI4_IRQn);
-	NVIC_EnableIRQ(EXTI4_IRQn);
 	while(1)
 	{
 		// uint8_t char_buffer[6]="      ";

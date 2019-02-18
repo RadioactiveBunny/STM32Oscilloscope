@@ -34,18 +34,11 @@ void PeripheralConfiguration()
 	/*Configure Touchscreen slave select pin(PORTB3) for SPI2 as output push-pull*/
 	GPIOB->CRL = (GPIOB->CRL & (~(GPIO_CRL_MODE3_0 | GPIO_CRL_CNF3))) | (GPIO_CRL_MODE3_1);
 
-
 	/*Configure Touchscreen PEN pin(PORTB4) as input pull-up/pull-down */
 	GPIOB->CRL = (GPIOB->CRL & (~(GPIO_CRL_MODE4 | GPIO_CRL_CNF4_0))) | (GPIO_CRL_CNF4_1);
 	/*Configure PORTB4 to use pull-up resistor*/
 	GPIOB->BSRR = GPIO_BSRR_BS4;
 
-	/*Configure Alternate function for PORTB4 interrupt on EXTI4 interrupt line*/
-	AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI4_PB;
-	/*Set interrupt trigger on rising Rising Edge for EXTI4 -> PORTB4 */
-	EXTI->RTSR |= EXTI_RTSR_TR4;
-	/*Unmask EXTI4 interrupt line*/
-	EXTI->IMR |= EXTI_IMR_MR4;
 	/*Disable SPI2 first*/
 	SPI2->CR1 &= ~(SPI_CR1_SPE);
 
