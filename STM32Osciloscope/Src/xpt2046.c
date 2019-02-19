@@ -54,6 +54,7 @@ int XPT2046_enable_irq()
 		*((__IO uint8_t*)&TOUCH_SPI_MODULE->DR) = buf[i];
 		WAIT_TX_CHECK_TIMEOUT(50)
 	}
+
 	/*SPI Disable touch and enble LCD*/
 	XPT2046_SPI_SS_disable();
 	return 0;
@@ -91,7 +92,7 @@ void internalInterruptConfig()
 	NVIC_EnableIRQ(EXTI4_IRQn);
 }
 
-static inline void maskInterrupt()
+static inline void maskIrqPinInterrupt()
 {
 	/*Mask EXTI4 interrupt line*/
 	EXTI->IMR &= ~EXTI_IMR_MR4;
@@ -99,7 +100,7 @@ static inline void maskInterrupt()
 	EXTI->PR |= EXTI_PR_PR4;
 }
 
-static inline void unmaskInterrupt()
+static inline void unmaskIrqPinInterrupt()
 {
 	/*Clear peripheral pending register to avoid activation of core pending register */
 	EXTI->PR |= EXTI_PR_PR4;
@@ -112,11 +113,10 @@ void TIM2_IRQHandler()
 #ifdef PORTC13_PROBING
 	GPIOC->BSRR = GPIO_BSRR_BR13;
 #endif
+	/*Clear timer interrupt flag*/
 	TIM2->SR &= ~TIM_SR_UIF;
-	/*Disable Timer*/
-	TIM2->CR1 &= ~TIM_CR1_CEN;
 	/*Unmask IRQ pin interrupt*/
-	unmaskInterrupt();
+	unmaskIrqPinInterrupt();
 #ifdef PORTC13_PROBING
 	GPIOC->BSRR = GPIO_BSRR_BS13;
 #endif
@@ -124,12 +124,34 @@ void TIM2_IRQHandler()
 
 void EXTI4_IRQHandler()
 {
-	maskInterrupt();
+	maskIrqPinInterrupt();
 #ifdef PORTC13_PROBING
 	//GPIOC->BSRR = GPIO_BSRR_BR13;
 #endif
+	/*Reconfigure SPI to match xpt2046 requirements*/
+	/*Wait for SPI module to finish current transaction before disabling it*/
+	 while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){}/*FIXME: Timeout needed here*/
+	/*Disable SPI module first*/
+	TOUCH_SPI_MODULE->CR1 &= ~SPI_CR1_SPE;
+	/*Configure Baud rate to fpCLK/16 = 2 MHz(xpt2046 supports 2.5MHz maximum on transmission); select 16 bit data frame format*/
+	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_DFF;
+	/*Re-enable SPI module*/
+	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_SPE;
+
+	/*GET ALL DATA FROM XPT2046 HERE*/
+
+	/*Return SPI to initial state*/
+	/*Wait for SPI module to finish current transaction before disabling it*/
+	 while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){}/*FIXME: Timeout needed here*/
+	/*Disable SPI module first*/
+	TOUCH_SPI_MODULE->CR1 &= ~SPI_CR1_SPE;
+	/*Configure Baud rate to fpCLK/16 = 2 MHz(xpt2046 supports 2.5MHz maximum on transmission); select 16 bit data frame format*/
+	TOUCH_SPI_MODULE->CR1 &= ~(SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_DFF);
+	/*Re-enable SPI module*/
+	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_SPE;
 
 	/*TODO: DFA GOES HERE*/
+
 	ILI9341_Draw_Main_Interface();
 #ifdef PORTC13_PROBING
 	//GPIOC->BSRR = GPIO_BSRR_BS13;
