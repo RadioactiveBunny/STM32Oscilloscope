@@ -21,10 +21,34 @@
 
 #define XPT2046_MUX_Z1      0b011
 #define XPT2046_MUX_Z2      0b100
-
-#define WAIT_TX_CHECK_TIMEOUT(Timeout) while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){ if(TimeCounter-tickstart_local > Timeout) return 1;}
-
 extern volatile uint32_t TimeCounter;
+
+static inline int SPI_WaitTx(uint32_t tickstart, uint32_t Timeout)
+{
+	while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE ))
+	{
+		if(TimeCounter-tickstart > Timeout)
+			return 1;
+	}
+	return 0;
+}
+
+static inline int SPI_WaitRx(uint32_t tickstart, uint32_t Timeout)
+{
+	while(!(TOUCH_SPI_MODULE->SR & SPI_SR_RXNE ))
+	{
+		if(TimeCounter-tickstart > Timeout)
+			return 1;
+	}
+	return 0;
+}
+
+
+
+uint16_t touchValueX =1;
+uint16_t touchValueY =2;
+uint16_t touchValueZ1 =3;
+uint16_t touchValueZ2 =4;
 
 static inline void XPT2046_SPI_SS_disable()
 {
@@ -44,15 +68,15 @@ static inline void XPT2046_SPI_SS_enable()
 
 int XPT2046_enable_irq()
 {
-	const uint32_t tickstart_local = TimeCounter;
+	const uint32_t tickstartLocal = TimeCounter;
 	const uint8_t buf[4] = { (XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Y)), 0x00, 0x00, 0x00 };
 	/*SPI Enable touch and disable LCD*/
 	XPT2046_SPI_SS_enable();
-	WAIT_TX_CHECK_TIMEOUT(10)
+	SPI_WaitTx(tickstartLocal, 10);
 	for(int i=0;i<4;i++)
 	{
 		*((__IO uint8_t*)&TOUCH_SPI_MODULE->DR) = buf[i];
-		WAIT_TX_CHECK_TIMEOUT(50)
+		SPI_WaitTx(tickstartLocal, 50);
 	}
 
 	/*SPI Disable touch and enble LCD*/
@@ -79,7 +103,7 @@ void internalInterruptConfig()
 	/*Configure Alternate function for PORTB4 interrupt on EXTI4 interrupt line*/
 	AFIO->EXTICR[1] |= AFIO_EXTICR2_EXTI4_PB;
 	/*Set interrupt trigger on rising Rising Edge for EXTI4 -> PORTB4 */
-	EXTI->RTSR |= EXTI_RTSR_TR4;
+	EXTI->FTSR |= EXTI_FTSR_TR4;
 	/*Clear peripheral pending register to avoid activation of core pending register */
 	EXTI->PR |= EXTI_PR_PR4;
 	/*Unmask EXTI4 interrupt line*/
@@ -122,39 +146,77 @@ void TIM2_IRQHandler()
 #endif
 }
 
-void EXTI4_IRQHandler()
+static inline uint16_t XPT2046_WriteCommandAndReadData(uint8_t Command)
 {
-	maskIrqPinInterrupt();
-#ifdef PORTC13_PROBING
-	//GPIOC->BSRR = GPIO_BSRR_BR13;
-#endif
-	/*Reconfigure SPI to match xpt2046 requirements*/
+	uint16_t spiDataRead;
+	spiDataRead = TOUCH_SPI_MODULE->DR;
+	const uint32_t tickstartLocal = TimeCounter;
+	*((__IO uint16_t*)&TOUCH_SPI_MODULE->DR) = (uint16_t)Command;
+	if(SPI_WaitTx(tickstartLocal, 2))
+		return -1;
+	if(SPI_WaitRx(tickstartLocal, 2))
+		return -1;
+	spiDataRead = TOUCH_SPI_MODULE->DR;
+	return spiDataRead;
+}
+
+static inline int XPT2046_ConfigureSpiForTransceive()
+{
 	/*Wait for SPI module to finish current transaction before disabling it*/
-	 while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){}/*FIXME: Timeout needed here*/
+	const uint32_t tickstartLocal = TimeCounter;
+	if(SPI_WaitTx(tickstartLocal, 2))
+		return 1;
 	/*Disable SPI module first*/
 	TOUCH_SPI_MODULE->CR1 &= ~SPI_CR1_SPE;
 	/*Configure Baud rate to fpCLK/16 = 2 MHz(xpt2046 supports 2.5MHz maximum on transmission); select 16 bit data frame format*/
 	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_DFF;
 	/*Re-enable SPI module*/
 	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_SPE;
+	return 0;
+}
 
-	/*GET ALL DATA FROM XPT2046 HERE*/
-
-	/*Return SPI to initial state*/
+static inline int XPT2046_ConfigureSpiToDefault()
+{
+	const uint32_t tickstartLocal = TimeCounter;
 	/*Wait for SPI module to finish current transaction before disabling it*/
-	 while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){}/*FIXME: Timeout needed here*/
+	if(SPI_WaitTx(tickstartLocal, 2))
+			return 1;
 	/*Disable SPI module first*/
 	TOUCH_SPI_MODULE->CR1 &= ~SPI_CR1_SPE;
 	/*Configure Baud rate to fpCLK/2 = 16 MHz; select 8 bit data frame format*/
 	TOUCH_SPI_MODULE->CR1 &= ~(SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_DFF);
 	/*Re-enable SPI module*/
 	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_SPE;
+	return 0;
+}
 
+void EXTI4_IRQHandler()
+{
+	maskIrqPinInterrupt();
+#ifdef PORTC13_PROBING
+	GPIOC->BSRR = GPIO_BSRR_BR13;
+#endif
+	/*Reconfigure SPI to match xpt2046 requirements*/
+	XPT2046_ConfigureSpiForTransceive();
+	XPT2046_SPI_SS_enable();
+	/*GET ALL DATA FROM XPT2046 HERE*/
+	XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_X) | XPT2046_CFG_PWR(1));
+	touchValueX = XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Y) | XPT2046_CFG_PWR(1));
+	touchValueY = XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Z1) | XPT2046_CFG_PWR(1));
+	touchValueZ1 = XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Z2) | XPT2046_CFG_PWR(0));
+	touchValueZ2 = XPT2046_WriteCommandAndReadData(
+			0);
+	/*Return SPI to initial state*/
+	XPT2046_ConfigureSpiToDefault();
+	XPT2046_SPI_SS_disable();
 	/*TODO: DFA GOES HERE*/
 
-	ILI9341_Draw_Main_Interface();
 #ifdef PORTC13_PROBING
-	//GPIOC->BSRR = GPIO_BSRR_BS13;
+	GPIOC->BSRR = GPIO_BSRR_BS13;
 #endif
 	/*Keep interrupt masked for 500ms after which timer overflows and activates timer interrupt that unmasks IRQ pin interrupt*/
 	TIM2->CR1 |= TIM_CR1_CEN;

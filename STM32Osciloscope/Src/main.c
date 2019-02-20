@@ -3,7 +3,10 @@
 #include "ili9341.h"
 #include "xpt2046.h"
 
-void PeripheralConfiguration();
+extern uint16_t touchValueX;
+extern uint16_t touchValueY;
+extern uint16_t touchValueZ1;
+extern uint16_t touchValueZ2;
 
 int main()
 {
@@ -18,29 +21,40 @@ int main()
 	Delay(1000);
 	while(1)
 	{
-		// uint8_t char_buffer[6]="      ";
-		// uint8_t char_buffer2[6]="BBLCHE";
-		// uint8_t *chb;
-		// static uint8_t old_char_buffer[6]={0x00,0x00,0x00,0x00,0x00,0x00};
-		// if(GPIOB->IDR & TOUCH_PEN_PIN)
-		// {
-			// chb = char_buffer;
-			// GPIOC->BSRR = GPIO_BSRR_BS13;
-			// ILI9341_Draw_Main_Interface();
-		// }
-		// else
-		// {
-			// chb = char_buffer2;
-			// GPIOC->BSRR = GPIO_BSRR_BR13;
-			// ILI9341_Delete_Main_Interface();
-		// }
-		// for(int i=0;i<sizeof(char_buffer); i++)
-		// {
-			// ILI9341_Draw_Char(chb[i],old_char_buffer[i], 5+13*i,210, COLOR_3, 2);
-		// }
-		// memcpy(old_char_buffer,chb,sizeof(char_buffer));
+		static char charBufferTouchValueX[6] = "      ";
+		static char charBufferTouchValueY[6] = "      ";
+		static char charBufferTouchValueZ1[6] = "      ";
+		static char charBufferTouchValueZ2[6] = "      ";
+
+		static char oldCharBufferTouchValueX[6] = "      ";
+		static char oldCharBufferTouchValueY[6] = "      ";
+		static char oldCharBufferTouchValueZ1[6] = "      ";
+		static char oldCharBufferTouchValueZ2[6] = "      ";
+
+		sprintf(charBufferTouchValueX,"%d",touchValueX);
+		sprintf(charBufferTouchValueY,"%d",touchValueY);
+		sprintf(charBufferTouchValueZ1,"%d",touchValueZ1);
+		sprintf(charBufferTouchValueZ2,"%d",touchValueZ2);
+		ILI9341_Draw_Line(charBufferTouchValueX, oldCharBufferTouchValueX, sizeof(charBufferTouchValueX), 5, 10);
+		ILI9341_Draw_Line(charBufferTouchValueY, oldCharBufferTouchValueY, sizeof(charBufferTouchValueY), 5, 30);
+		ILI9341_Draw_Line(charBufferTouchValueZ1, oldCharBufferTouchValueZ1, sizeof(charBufferTouchValueZ1), 5, 50);
+		ILI9341_Draw_Line(charBufferTouchValueZ2, oldCharBufferTouchValueZ2, sizeof(charBufferTouchValueZ2), 5, 70);
+
+		memcpy(oldCharBufferTouchValueX, charBufferTouchValueX, sizeof(charBufferTouchValueX));
+		memcpy(oldCharBufferTouchValueY, charBufferTouchValueY, sizeof(charBufferTouchValueY));
+		memcpy(oldCharBufferTouchValueZ1, charBufferTouchValueZ1, sizeof(charBufferTouchValueZ1));
+		memcpy(oldCharBufferTouchValueZ2, charBufferTouchValueZ2, sizeof(charBufferTouchValueZ2));
+
+		ILI9341_Draw_Square(	100, 100,
+									110, 110,
+									COLOR_3);
 		Delay(500);
-		ILI9341_Delete_Main_Interface();
+
+		ILI9341_Draw_Square(	100, 100,
+									110, 110,
+									COLOR_1);
+		Delay(500);
+
 #ifdef PORTC13_PROBING
 		// GPIOC->BSRR = GPIO_BSRR_BR13;
 		// GPIOC->BSRR = GPIO_BSRR_BS13;

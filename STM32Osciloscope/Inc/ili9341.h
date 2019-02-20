@@ -23,6 +23,7 @@ void ILI9341_SPI_SS_Disable();
 void ILI9341_Enable(void);
 int ILI9341_Init();
 int ILI9341_Draw_Char( char Character, char oldCharacter, uint16_t posX, uint16_t posY, uint16_t Color, uint8_t Size);
+int ILI9341_Draw_Line(char* charBuffer, char* oldCharBuffer, int length, int positionXCoord, int positionYCoord);
 int ILI9341_Draw_Horizontal_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
 int ILI9341_Draw_Vertical_Line( uint16_t posX, uint16_t posY, uint16_t length, uint16_t Color);
 int ILI9341_Draw_Dotted_Vertical_Line( uint16_t posX, uint16_t posY , uint16_t length, uint16_t Color);
