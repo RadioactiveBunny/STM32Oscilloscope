@@ -145,7 +145,7 @@ void EXTI4_IRQHandler()
 	 while(!(TOUCH_SPI_MODULE->SR & SPI_SR_TXE )){}/*FIXME: Timeout needed here*/
 	/*Disable SPI module first*/
 	TOUCH_SPI_MODULE->CR1 &= ~SPI_CR1_SPE;
-	/*Configure Baud rate to fpCLK/16 = 2 MHz(xpt2046 supports 2.5MHz maximum on transmission); select 16 bit data frame format*/
+	/*Configure Baud rate to fpCLK/2 = 16 MHz; select 8 bit data frame format*/
 	TOUCH_SPI_MODULE->CR1 &= ~(SPI_CR1_BR_0 | SPI_CR1_BR_1 | SPI_CR1_DFF);
 	/*Re-enable SPI module*/
 	TOUCH_SPI_MODULE->CR1 |= SPI_CR1_SPE;
