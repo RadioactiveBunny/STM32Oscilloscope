@@ -35,6 +35,7 @@ int main()
 		sprintf(charBufferTouchValueY,"%d",touchValueY);
 		sprintf(charBufferTouchValueZ1,"%d",touchValueZ1);
 		sprintf(charBufferTouchValueZ2,"%d",touchValueZ2);
+
 		ILI9341_Draw_Line(charBufferTouchValueX, oldCharBufferTouchValueX, sizeof(charBufferTouchValueX), 5, 10);
 		ILI9341_Draw_Line(charBufferTouchValueY, oldCharBufferTouchValueY, sizeof(charBufferTouchValueY), 5, 30);
 		ILI9341_Draw_Line(charBufferTouchValueZ1, oldCharBufferTouchValueZ1, sizeof(charBufferTouchValueZ1), 5, 50);
