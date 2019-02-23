@@ -22,10 +22,10 @@
 #define XPT2046_MUX_Z1      0b011
 #define XPT2046_MUX_Z2      0b100
 
-uint16_t touchValueX =1;
-uint16_t touchValueY =2;
-uint16_t touchValueZ1 =3;
-uint16_t touchValueZ2 =4;
+uint16_t touchValueX;
+uint16_t touchValueY;
+uint16_t touchValueZ1;
+uint16_t touchValueZ2;
 
 extern volatile uint32_t TimeCounter;
 
@@ -150,7 +150,9 @@ void internalInterruptConfig()
 	TIM2->CR1 |= TIM_CR1_OPM;
 	/*Enable interrupt in the NVIC*/
 	NVIC_SetPriority(TIM2_IRQn, 2);
+	/*Clear internal pending register to avoid immediate servicing of the interrupt*/
 	NVIC_ClearPendingIRQ(TIM2_IRQn);
+	/*Enable interrupt*/
 	NVIC_EnableIRQ(TIM2_IRQn);
 
 	/*Configure Alternate function for PORTB4 interrupt on EXTI4 interrupt line*/
@@ -207,16 +209,47 @@ void EXTI4_IRQHandler()
 	XPT2046_ConfigureSpiForTransceive();
 	XPT2046_SPI_SS_enable();
 	/*GET ALL DATA FROM XPT2046 HERE*/
-	XPT2046_WriteCommandAndReadData(
-			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_X) | XPT2046_CFG_PWR(1));
-	touchValueX = XPT2046_WriteCommandAndReadData(
-			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Y) | XPT2046_CFG_PWR(1));
-	touchValueY = XPT2046_WriteCommandAndReadData(
-			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Z1) | XPT2046_CFG_PWR(1));
-	touchValueZ1 = XPT2046_WriteCommandAndReadData(
-			XPT2046_CFG_START | XPT2046_CFG_12BIT | XPT2046_CFG_DFR | XPT2046_CFG_MUX(XPT2046_MUX_Z2) | XPT2046_CFG_PWR(0));
-	touchValueZ2 = XPT2046_WriteCommandAndReadData(
-			0);
+	int32_t samples = 0;
+	uint32_t touchValueXlocal = 0;
+	uint32_t touchValueYlocal = 0;
+	uint32_t touchValueZ1local = 0;
+	uint32_t touchValueZ2local = 0;
+	do
+	{
+		XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START |
+			XPT2046_CFG_12BIT |
+			XPT2046_CFG_DFR |
+			XPT2046_CFG_MUX(XPT2046_MUX_X) |
+			XPT2046_CFG_PWR(1));
+		touchValueXlocal += XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START |
+			XPT2046_CFG_12BIT |
+			XPT2046_CFG_DFR |
+			XPT2046_CFG_MUX(XPT2046_MUX_Y) |
+			XPT2046_CFG_PWR(1))>>3;
+		touchValueYlocal += XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START |
+			XPT2046_CFG_12BIT |
+			XPT2046_CFG_DFR |
+			XPT2046_CFG_MUX(XPT2046_MUX_Z1) |
+			XPT2046_CFG_PWR(1))>>3;
+		touchValueZ1local += XPT2046_WriteCommandAndReadData(
+			XPT2046_CFG_START |
+			XPT2046_CFG_12BIT |
+			XPT2046_CFG_DFR |
+			XPT2046_CFG_MUX(XPT2046_MUX_Z2) |
+			XPT2046_CFG_PWR(0))>>3;
+		touchValueZ2local += XPT2046_WriteCommandAndReadData(0)>>3;
+		samples++;
+		//Delay(2);
+	}
+	while(!(GPIOB->IDR & GPIO_IDR_IDR4)&&samples<200);
+
+	touchValueX = touchValueXlocal / samples;
+	touchValueY = touchValueYlocal / samples;
+	touchValueZ1 = touchValueZ1local / samples;
+	touchValueZ2 = touchValueZ2local / samples;
 	/*Return SPI to initial state*/
 	XPT2046_ConfigureSpiToDefault();
 	XPT2046_SPI_SS_disable();
@@ -228,5 +261,7 @@ void EXTI4_IRQHandler()
 	/*Keep interrupt masked for 500ms after which timer overflows and activates timer interrupt that unmasks IRQ pin interrupt*/
 	/*Taking your finger off the screen makes the IRQ noisy, which may immediately cause another interrupt to be serviced.
 	 * So we must delay this using TIM2.*/
+	/*Wait for IDR4 to go low; a.k.a wait until the finger is off the screen*/
+	while(!(GPIOB->IDR & GPIO_IDR_IDR4)){}
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
