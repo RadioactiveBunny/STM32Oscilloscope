@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "stm32f103xb.h"
-#include "ili9341.h"
-#include "xpt2046.h"
+#include "ILI9341/ILI9341.h"
+#include "XPT2046/XPT2046.h"
 
 extern uint16_t touchValueX;
 extern uint16_t touchValueY;
@@ -16,8 +16,8 @@ int main()
 	ILI9341_Init();
 	ILI9341_SPI_SS_Enable();
 	ILI9341_Draw_Background();
-	XPT2046_enable_irq();
-	internalInterruptConfig();
+	XPT2046_EnableIRQPin();
+	XPT2046_InternalInterruptConfig();
 	Delay(1000);
 	while(1)
 	{

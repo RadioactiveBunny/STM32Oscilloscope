@@ -51,15 +51,9 @@ endif
 CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 
 #Source files
-C_SOURCES = \
-Src/SystemInit.c \
-Src/Config.c \
-Src/main.c \
-Src/ili9341.c \
-Src/xpt2046.c
+C_SOURCES := $(shell find ./ -name '*.c')
 
-ASM_SOURCES = \
-startup.s
+ASM_SOURCES := $(shell find ./ -name '*.s')
 
 # list of objects
 OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))

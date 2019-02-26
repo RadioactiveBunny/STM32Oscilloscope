@@ -147,7 +147,7 @@ typedef enum
   * @}
   */
 
-#include "core_cm3.h"
+#include "CoreCM3/core_cm3.h"
 #include <stdint.h>
 
 /** @addtogroup Peripheral_registers_structures
