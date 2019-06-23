@@ -11,13 +11,14 @@ extern uint16_t touchValueZ2;
 int main()
 {
 	PeripheralConfiguration();
-	GPIOC->BSRR = GPIO_BSRR_BS13;
+	//GPIOC->BSRR = GPIO_BSRR_BS13;
 	ILI9341_Enable();
 	ILI9341_Init();
 	ILI9341_SPI_SS_Enable();
 	ILI9341_Draw_Background();
 	XPT2046_EnableIRQPin();
 	XPT2046_InternalInterruptConfig();
+	ILI9341_Draw_Main_Interface();
 	Delay(1000);
 	while(1)
 	{
@@ -36,10 +37,10 @@ int main()
 		sprintf(charBufferTouchValueZ1,"%d",touchValueZ1);
 		sprintf(charBufferTouchValueZ2,"%d",touchValueZ2);
 
-		ILI9341_Draw_Line(charBufferTouchValueX, oldCharBufferTouchValueX, sizeof(charBufferTouchValueX), 5, 10);
-		ILI9341_Draw_Line(charBufferTouchValueY, oldCharBufferTouchValueY, sizeof(charBufferTouchValueY), 5, 30);
-		ILI9341_Draw_Line(charBufferTouchValueZ1, oldCharBufferTouchValueZ1, sizeof(charBufferTouchValueZ1), 5, 50);
-		ILI9341_Draw_Line(charBufferTouchValueZ2, oldCharBufferTouchValueZ2, sizeof(charBufferTouchValueZ2), 5, 70);
+		ILI9341_Draw_CharLine(charBufferTouchValueX, oldCharBufferTouchValueX, sizeof(charBufferTouchValueX), 5, 10);
+		ILI9341_Draw_CharLine(charBufferTouchValueY, oldCharBufferTouchValueY, sizeof(charBufferTouchValueY), 5, 30);
+		ILI9341_Draw_CharLine(charBufferTouchValueZ1, oldCharBufferTouchValueZ1, sizeof(charBufferTouchValueZ1), 5, 50);
+		ILI9341_Draw_CharLine(charBufferTouchValueZ2, oldCharBufferTouchValueZ2, sizeof(charBufferTouchValueZ2), 5, 70);
 
 		memcpy(oldCharBufferTouchValueX, charBufferTouchValueX, sizeof(charBufferTouchValueX));
 		memcpy(oldCharBufferTouchValueY, charBufferTouchValueY, sizeof(charBufferTouchValueY));

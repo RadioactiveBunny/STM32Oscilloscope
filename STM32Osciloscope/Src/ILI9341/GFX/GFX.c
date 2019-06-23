@@ -374,7 +374,7 @@ int ILI9341_Draw_Char(char Character, char oldCharacter, uint16_t posX, uint16_t
 	return lRetVal;
 }
 
-int ILI9341_Draw_Line(char* charBuffer, char* oldCharBuffer, int length, int positionXCoord, int positionYCoord)
+int ILI9341_Draw_CharLine(char* charBuffer, char* oldCharBuffer, int length, int positionXCoord, int positionYCoord)
 {
 	int status = 0;
 	for(int i = 0; i < length; i++)

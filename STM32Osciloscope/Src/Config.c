@@ -91,7 +91,7 @@ void PeripheralConfiguration()
 /* Holds timebase counter in ms */
 volatile uint32_t TimeCounter = 0;
 
-/* SysTick Interrupt Handler */
+/* SysTick Interrupt Handler ; function name defined in startup.s*/
 void SysTick_Handler()
 {
 	TimeCounter++;

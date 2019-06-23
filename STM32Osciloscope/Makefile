@@ -1,6 +1,6 @@
 #Path and prefix to ARM Toolchain
 PREFIX = arm-none-eabi-
-GCC_PATH="/c/Program Files (x86)/GNU Tools Arm Embedded/7 2018-q2-update/bin"
+GCC_PATH="/mnt/c/Program Files (x86)/GNU Tools ARM Embedded/8 2018-q4-major/bin/"
 
 #Target project name
 TARGET = STM32Oscilloscope
@@ -22,10 +22,10 @@ AS_INCLUDES =
 COM_PORT = COM3
 
 #Tools defs
-CC = $(GCC_PATH)/$(PREFIX)gcc
-AS = $(GCC_PATH)/$(PREFIX)gcc -x assembler-with-cpp
-CP = $(GCC_PATH)/$(PREFIX)objcopy
-SZ = $(GCC_PATH)/$(PREFIX)size
+CC = $(GCC_PATH)/$(PREFIX)gcc.exe
+AS = $(GCC_PATH)/$(PREFIX)gcc.exe -x assembler-with-cpp
+CP = $(GCC_PATH)/$(PREFIX)objcopy.exe
+SZ = $(GCC_PATH)/$(PREFIX)size.exe
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
